@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .nav-link {
+            @apply px-3 py-2 text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-md transition-colors duration-200 cursor-pointer flex items-center;
+        }
+        .nav-link.active {
+            @apply text-blue-600 font-semibold bg-blue-100;
+        }
+        .section {
+            display: none; /* Hidden by default, shown by JS */
+        }
+        .section.active {
+            display: block;
+        }
+        .card {
+            @apply bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300;
+        }
+        .form-input {
+            @apply w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow;
+        }
+        .form-textarea {
+            @apply w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow min-h-[120px];
+        }
+        .btn-primary {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+        }
+        .btn-secondary {
+            @apply bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-50;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #777;
+            cursor: pointer;
+        }
+        .modal-close-btn:hover {
+            color: #333;
+        }
+        .icon {
+            display: inline-block;
+            width: 1.2em;
+            height: 1.2em;
+            vertical-align: middle;
+            margin-right: 0.4em;
+        }
+        .social-icon {
+            width: 1.5em;
+            height: 1.5em;
+            transition: transform 0.2s;
+        }
+        .social-icon:hover {
+            transform: scale(1.1);
+        }
+        .user-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .logo-img {
+            height: 40px; /* Adjust as needed */
+            width: auto;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="firebaseStatusBar" class="fixed top-0 left-0 right-0 bg-slate-800 text-white text-xs p-2 text-center z-[1001]">
+        Firebase Status: <span id="authStatus">Initializing...</span> | User ID: <span id="userIdDisplay">N/A</span>
+    </div>
+
+    <header class="bg-white shadow-md sticky top-0 z-40 pt-8">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center text-3xl font-bold text-blue-600 mb-4 sm:mb-0">
+                <img src="https://placehold.co/100x40/3b82f6/ffffff?text=Logo" alt="My Logo" id="userLogo" class="logo-img" onerror="this.src='https://placehold.co/100x40/cccccc/999999?text=Logo'; this.alt='Logo Placeholder'">
+                MyPortfolio
+            </div>
+            <div class="flex flex-wrap justify-center space-x-1 sm:space-x-2">
+                <a data-target="#home" class="nav-link active">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Home
+                </a>
+                <a data-target="#portfolio" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>Portfolio
+                </a>
+                <a data-target="#articles" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Articles
+                </a>
+                <a data-target="#testimonials" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Testimonials
+                </a>
+                <a data-target="#add-content" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add Content
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section id="home" class="section active">
+            <div class="text-center py-12">
+                <img src="https://placehold.co/150x150/e0e0e0/757575?text=Your+Photo" alt="My Photo" id="userPhoto" class="user-photo mx-auto mb-6" onerror="this.src='https://placehold.co/150x150/cccccc/999999?text=Photo'; this.alt='Photo Placeholder'">
+                <h1 class="text-5xl font-extrabold mb-4">Welcome to My Portfolio!</h1>
+                <p class="text-xl text-slate-600 mb-8 max-w-2xl mx-auto" id="homeIntroText">
+                    Discover my projects, read my articles, and get to know more about my work and passion.
+                </p>
+                <button onclick="navigateToSection('#portfolio')" class="btn-primary text-lg px-8 py-3 mb-12">
+                    View My Work <svg class="icon -mr-1 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </button>
+
+                <div class="mt-12 pt-10 border-t border-slate-200">
+                    <h2 class="text-3xl font-bold mb-8 text-slate-700">Connect With Me</h2>
+                    <div class="flex flex-wrap justify-center items-center gap-6 md:gap-8 text-slate-600">
+                        <a href="mailto:youremail@example.com" id="emailLink" class="hover:text-blue-600 flex items-center text-lg">
+                            <svg class="social-icon mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            Email
+                        </a>
+                        <a href="https://wa.me/yourphonenumber" id="whatsappLink" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 flex items-center text-lg">
+                            <svg class="social-icon mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.33 3.43 16.79L2.05 22L7.31 20.62C8.75 21.38 10.36 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 6.45 17.5 2 12.04 2ZM12.04 20.13C10.56 20.13 9.13 19.73 7.89 19L7.5 18.78L4.42 19.57L5.23 16.56L4.99 16.17C4.14 14.81 3.83 13.22 3.83 11.91C3.83 7.39 7.52 3.7 12.04 3.7C16.56 3.7 20.25 7.39 20.25 11.91C20.25 16.43 16.56 20.13 12.04 20.13ZM17.36 14.45C17.13 14.91 16.22 15.38 15.67 15.48C15.12 15.58 14.37 15.5 13.87 15.23C13.37 14.96 12.47 14.55 11.46 13.61C10.22 12.44 9.42 11.11 9.19 10.65C8.96 10.19 9.28 9.95 9.48 9.75C9.66 9.57 9.88 9.34 10.11 9.11C10.34 8.88 10.42 8.72 10.25 8.41C10.08 8.1 9.48 6.51 9.2 5.94C8.92 5.37 8.63 5.47 8.41 5.47C8.19 5.47 7.97 5.47 7.75 5.47C7.53 5.47 7.14 5.57 6.81 5.94C6.48 6.31 5.81 6.92 5.81 8.1C5.81 9.28 6.83 10.41 7.06 10.65C7.29 10.89 9.03 13.52 11.51 14.55C12.01 14.75 12.69 14.98 13.16 15.08C13.78 15.21 14.35 15.18 14.74 15.08C15.18 14.96 16.03 14.43 16.24 13.9C16.45 13.37 16.45 12.92 16.37 12.75C16.29 12.58 16.13 12.5 15.88 12.34C15.63 12.18 14.73 11.71 14.51 11.62C14.29 11.53 14.13 11.48 13.96 11.76C13.79 12.04 13.33 12.58 13.18 12.75C13.03 12.92 12.88 12.94 12.63 12.78C12.38 12.61 11.68 12.37 10.83 11.6C10.14 10.95 9.68 10.15 9.48 9.82C9.28 9.49 9.39 9.34 9.59 9.18C9.77 9.04 9.93 8.85 10.09 8.67C10.25 8.49 10.33 8.36 10.43 8.21C10.53 8.06 10.48 7.93 10.43 7.83C10.38 7.73 9.85 6.37 9.65 5.96C9.45 5.55 9.25 5.57 9.12 5.57C9.01 5.57 8.88 5.57 8.75 5.57L8.75 5.57C10.08 7.01 11.06 7.95 12.52 9.37C13.98 10.79 15.44 12.21 16.9 13.63L16.9 13.63C17.08 13.91 17.24 14.08 17.36 14.45Z"/></svg>
+                            WhatsApp
+                        </a>
+                        <a href="https://facebook.com/yourprofile" id="facebookLink" target="_blank" rel="noopener noreferrer" class="hover:text-blue-700 flex items-center text-lg">
+                            <svg class="social-icon mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-1.7c-.6 0-1 .4-1 1v1.5h2.7l-.5 3H13v6.95c5.05-.95 8.65-5.35 8.65-10.15Z"/></svg>
+                            Facebook
+                        </a>
+                        <a href="https://instagram.com/yourprofile" id="instagramLink" target="_blank" rel="noopener noreferrer" class="hover:text-pink-600 flex items-center text-lg">
+                            <svg class="social-icon mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.74 2 8.33 2.02 7.21 2.07C6.08 2.12 5.36 2.34 4.78 2.58C4.21 2.82 3.79 3.11 3.39 3.51C2.99 3.91 2.7 4.33 2.46 4.9C2.22 5.48 2 6.2 1.95 7.33C1.9 8.45 1.88 8.86 1.88 12.12C1.88 15.38 1.9 15.79 1.95 16.91C2 18.03 2.22 18.75 2.46 19.33C2.7 19.89 2.99 20.31 3.39 20.71C3.79 21.11 4.21 21.4 4.78 21.64C5.36 21.88 6.08 22.1 7.21 22.15C8.33 22.2 8.74 22.22 12 22.22C15.26 22.22 15.67 22.2 16.79 22.15C17.92 22.1 18.64 21.88 19.22 21.64C19.79 21.4 20.21 21.11 20.61 20.71C21.01 20.31 21.3 19.89 21.54 19.33C21.78 18.75 22 18.03 22.05 16.91C22.1 15.79 22.12 15.38 22.12 12.12C22.12 8.86 22.1 8.45 22.05 7.33C22 6.2 21.78 5.48 21.54 4.9C21.3 4.33 21.01 3.91 20.61 3.51C20.21 3.11 19.79 2.82 19.22 2.58C18.64 2.34 17.92 2.12 16.79 2.07C15.67 2.02 15.26 2 12 2Zm0 1.8C15.17 3.8 15.52 3.83 16.6 3.88C17.61 3.92 18.19 4.11 18.6 4.29C19.03 4.47 19.34 4.68 19.63 4.97C19.92 5.26 20.13 5.57 20.31 6C20.49 6.41 20.68 6.99 20.72 8C20.77 9.08 20.8 9.43 20.8 12.12C20.8 14.81 20.77 15.16 20.72 16.24C20.68 17.25 20.49 17.83 20.31 18.24C20.13 18.65 19.92 18.96 19.63 19.25C19.34 19.54 19.03 19.75 18.6 19.93C18.19 20.11 17.61 20.3 16.6 20.34C15.52 20.39 15.17 20.42 12 20.42C8.83 20.42 8.48 20.39 7.4 20.34C6.39 20.3 5.81 20.11 5.4 19.93C4.97 19.75 4.66 19.54 4.37 19.25C4.08 18.96 3.87 18.65 3.69 18.24C3.51 17.83 3.32 17.25 3.28 16.24C3.23 15.16 3.2 14.81 3.2 12.12C3.2 9.43 3.23 9.08 3.28 8C3.32 6.99 3.51 6.41 3.69 6C3.87 5.57 4.08 5.26 4.37 4.97C4.66 4.68 4.97 4.47 5.4 4.29C5.81 4.11 6.39 3.92 7.4 3.88C8.48 3.83 8.83 3.8 12 3.8Zm0 4.56C9.93 8.36 8.24 10.05 8.24 12.12C8.24 14.19 9.93 15.88 12 15.88C14.07 15.88 15.76 14.19 15.76 12.12C15.76 10.05 14.07 8.36 12 8.36Zm0 5.72C10.89 14.08 10.04 13.23 10.04 12.12C10.04 11.01 10.89 10.16 12 10.16C13.11 10.16 13.96 11.01 13.96 12.12C13.96 13.23 13.11 14.08 12 14.08Zm5.18-7.81C16.54 6.27 16 6.83 16 7.49C16 8.15 16.54 8.71 17.18 8.71C17.82 8.71 18.36 8.15 18.36 7.49C18.36 6.83 17.82 6.27 17.18 6.27Z"/></svg>
+                            Instagram
+                        </a>
+                        <a href="https://linkedin.com/in/yourprofile" id="linkedinLink" target="_blank" rel="noopener noreferrer" class="hover:text-sky-600 flex items-center text-lg">
+                           <svg class="social-icon mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0 1 15.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z"/></svg>
+                            LinkedIn
+                        </a>
+                    </div>
+                    <div class="mt-6 text-center text-slate-600">
+                        <p class="flex items-center justify-center text-lg">
+                            <svg class="social-icon mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span id="userAddress">Your City, Country</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio" class="section">
+            <h2 class="text-4xl font-bold mb-8 text-center">My Portfolio</h2>
+            <div id="portfolioGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <p id="noPortfolioItems" class="text-slate-500 col-span-full text-center">No portfolio items yet.</p>
+            </div>
+        </section>
+
+        <section id="articles" class="section">
+            <h2 class="text-4xl font-bold mb-8 text-center">My Articles</h2>
+            <div id="articlesList" class="space-y-8 max-w-3xl mx-auto">
+                 <p id="noArticles" class="text-slate-500 text-center">No articles yet.</p>
+            </div>
+        </section>
+
+        <section id="testimonials" class="section">
+            <h2 class="text-4xl font-bold mb-8 text-center">Testimonials</h2>
+            <div id="testimonialsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <p id="noTestimonials" class="text-slate-500 col-span-full text-center">No testimonials yet.</p>
+            </div>
+        </section>
+
+        <section id="add-content" class="section">
+            <h2 class="text-4xl font-bold mb-8 text-center">Add New Content</h2>
+            <div class="max-w-2xl mx-auto space-y-12">
+                <div class="card">
+                    <h3 class="text-2xl font-semibold mb-6 text-blue-600">Add Portfolio Item</h3>
+                    <form id="addPortfolioForm" class="space-y-4">
+                        <div><label for="portfolioTitle" class="block text-sm font-medium text-slate-700 mb-1">Title</label><input type="text" id="portfolioTitle" class="form-input" required></div>
+                        <div><label for="portfolioDescription" class="block text-sm font-medium text-slate-700 mb-1">Description</label><textarea id="portfolioDescription" class="form-textarea" rows="3" required></textarea></div>
+                        <div><label for="portfolioImageUrl" class="block text-sm font-medium text-slate-700 mb-1">Image URL</label><input type="url" id="portfolioImageUrl" class="form-input" placeholder="https://example.com/image.jpg" required></div>
+                        <div><label for="portfolioProjectUrl" class="block text-sm font-medium text-slate-700 mb-1">Project URL (Optional)</label><input type="url" id="portfolioProjectUrl" class="form-input" placeholder="https://example.com/project"></div>
+                        <div><label for="portfolioCategory" class="block text-sm font-medium text-slate-700 mb-1">Category/Tags (comma-separated)</label><input type="text" id="portfolioCategory" class="form-input" placeholder="Web Development, Design"></div>
+                        <button type="submit" class="btn-primary w-full">Add Portfolio Item</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 class="text-2xl font-semibold mb-6 text-blue-600">Add Article</h3>
+                    <form id="addArticleForm" class="space-y-4">
+                        <div><label for="articleTitle" class="block text-sm font-medium text-slate-700 mb-1">Title</label><input type="text" id="articleTitle" class="form-input" required></div>
+                        <div><label for="articleContent" class="block text-sm font-medium text-slate-700 mb-1">Content</label><textarea id="articleContent" class="form-textarea" rows="6" required></textarea></div>
+                        <div><label for="articleAuthor" class="block text-sm font-medium text-slate-700 mb-1">Author (Defaults to User ID if empty)</label><input type="text" id="articleAuthor" class="form-input"></div>
+                        <div><label for="articleTags" class="block text-sm font-medium text-slate-700 mb-1">Tags (comma-separated)</label><input type="text" id="articleTags" class="form-input" placeholder="Tech, Firebase, Tutorial"></div>
+                        <button type="submit" class="btn-primary w-full">Add Article</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 class="text-2xl font-semibold mb-6 text-blue-600">Add Testimonial</h3>
+                    <form id="addTestimonialForm" class="space-y-4">
+                        <div><label for="testimonialName" class="block text-sm font-medium text-slate-700 mb-1">Person's Name</label><input type="text" id="testimonialName" class="form-input" required></div>
+                        <div><label for="testimonialQuote" class="block text-sm font-medium text-slate-700 mb-1">Quote / Testimonial</label><textarea id="testimonialQuote" class="form-textarea" rows="4" required></textarea></div>
+                        <div><label for="testimonialTitleCompany" class="block text-sm font-medium text-slate-700 mb-1">Title / Company (Optional)</label><input type="text" id="testimonialTitleCompany" class="form-input"></div>
+                        <div><label for="testimonialImageUrl" class="block text-sm font-medium text-slate-700 mb-1">Person's Image URL (Optional)</label><input type="url" id="testimonialImageUrl" class="form-input" placeholder="https://example.com/person.jpg"></div>
+                        <button type="submit" class="btn-primary w-full">Add Testimonial</button>
+                    </form>
+                </div>
+                 <div class="card">
+                    <h3 class="text-2xl font-semibold mb-6 text-blue-600">Update Personal Information</h3>
+                    <form id="updatePersonalInfoForm" class="space-y-4">
+                        <div><label for="personalLogoUrl" class="block text-sm font-medium text-slate-700 mb-1">Logo URL</label><input type="url" id="personalLogoUrl" class="form-input" placeholder="https://example.com/logo.png"></div>
+                        <div><label for="personalPhotoUrl" class="block text-sm font-medium text-slate-700 mb-1">Your Photo URL</label><input type="url" id="personalPhotoUrl" class="form-input" placeholder="https://example.com/your-photo.jpg"></div>
+                        <div><label for="personalHomeIntro" class="block text-sm font-medium text-slate-700 mb-1">Home Page Intro Text</label><textarea id="personalHomeIntro" class="form-textarea" rows="3"></textarea></div>
+                        <div><label for="personalEmail" class="block text-sm font-medium text-slate-700 mb-1">Email Address</label><input type="email" id="personalEmail" class="form-input" placeholder="youremail@example.com"></div>
+                        <div><label for="personalWhatsapp" class="block text-sm font-medium text-slate-700 mb-1">WhatsApp Number (with country code)</label><input type="tel" id="personalWhatsapp" class="form-input" placeholder="+1234567890"></div>
+                        <div><label for="personalFacebook" class="block text-sm font-medium text-slate-700 mb-1">Facebook Profile URL</label><input type="url" id="personalFacebook" class="form-input" placeholder="https://facebook.com/yourprofile"></div>
+                        <div><label for="personalInstagram" class="block text-sm font-medium text-slate-700 mb-1">Instagram Profile URL</label><input type="url" id="personalInstagram" class="form-input" placeholder="https://instagram.com/yourprofile"></div>
+                        <div><label for="personalLinkedin" class="block text-sm font-medium text-slate-700 mb-1">LinkedIn Profile URL</label><input type="url" id="personalLinkedin" class="form-input" placeholder="https://linkedin.com/in/yourprofile"></div>
+                        <div><label for="personalAddress" class="block text-sm font-medium text-slate-700 mb-1">Your Address (e.g., City, Country)</label><input type="text" id="personalAddress" class="form-input" placeholder="Your City, Country"></div>
+                        <button type="submit" class="btn-primary w-full">Save Personal Info</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-12 mt-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="#" id="footerEmailLink" aria-label="Email" class="hover:text-blue-400"><svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>
+                <a href="#" id="footerWhatsappLink" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="hover:text-green-400"><svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.33 3.43 16.79L2.05 22L7.31 20.62C8.75 21.38 10.36 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 6.45 17.5 2 12.04 2ZM12.04 20.13C10.56 20.13 9.13 19.73 7.89 19L7.5 18.78L4.42 19.57L5.23 16.56L4.99 16.17C4.14 14.81 3.83 13.22 3.83 11.91C3.83 7.39 7.52 3.7 12.04 3.7C16.56 3.7 20.25 7.39 20.25 11.91C20.25 16.43 16.56 20.13 12.04 20.13ZM17.36 14.45C17.13 14.91 16.22 15.38 15.67 15.48C15.12 15.58 14.37 15.5 13.87 15.23C13.37 14.96 12.47 14.55 11.46 13.61C10.22 12.44 9.42 11.11 9.19 10.65C8.96 10.19 9.28 9.95 9.48 9.75C9.66 9.57 9.88 9.34 10.11 9.11C10.34 8.88 10.42 8.72 10.25 8.41C10.08 8.1 9.48 6.51 9.2 5.94C8.92 5.37 8.63 5.47 8.41 5.47C8.19 5.47 7.97 5.47 7.75 5.47C7.53 5.47 7.14 5.57 6.81 5.94C6.48 6.31 5.81 6.92 5.81 8.1C5.81 9.28 6.83 10.41 7.06 10.65C7.29 10.89 9.03 13.52 11.51 14.55C12.01 14.75 12.69 14.98 13.16 15.08C13.78 15.21 14.35 15.18 14.74 15.08C15.18 14.96 16.03 14.43 16.24 13.9C16.45 13.37 16.45 12.92 16.37 12.75C16.29 12.58 16.13 12.5 15.88 12.34C15.63 12.18 14.73 11.71 14.51 11.62C14.29 11.53 14.13 11.48 13.96 11.76C13.79 12.04 13.33 12.58 13.18 12.75C13.03 12.92 12.88 12.94 12.63 12.78C12.38 12.61 11.68 12.37 10.83 11.6C10.14 10.95 9.68 10.15 9.48 9.82C9.28 9.49 9.39 9.34 9.59 9.18C9.77 9.04 9.93 8.85 10.09 8.67C10.25 8.49 10.33 8.36 10.43 8.21C10.53 8.06 10.48 7.93 10.43 7.83C10.38 7.73 9.85 6.37 9.65 5.96C9.45 5.55 9.25 5.57 9.12 5.57C9.01 5.57 8.88 5.57 8.75 5.57L8.75 5.57C10.08 7.01 11.06 7.95 12.52 9.37C13.98 10.79 15.44 12.21 16.9 13.63L16.9 13.63C17.08 13.91 17.24 14.08 17.36 14.45Z"/></svg></a>
+                <a href="#" id="footerFacebookLink" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="hover:text-blue-500"><svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-1.7c-.6 0-1 .4-1 1v1.5h2.7l-.5 3H13v6.95c5.05-.95 8.65-5.35 8.65-10.15Z"/></svg></a>
+                <a href="#" id="footerInstagramLink" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="hover:text-pink-500"><svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.74 2 8.33 2.02 7.21 2.07C6.08 2.12 5.36 2.34 4.78 2.58C4.21 2.82 3.79 3.11 3.39 3.51C2.99 3.91 2.7 4.33 2.46 4.9C2.22 5.48 2 6.2 1.95 7.33C1.9 8.45 1.88 8.86 1.88 12.12C1.88 15.38 1.9 15.79 1.95 16.91C2 18.03 2.22 18.75 2.46 19.33C2.7 19.89 2.99 20.31 3.39 20.71C3.79 21.11 4.21 21.4 4.78 21.64C5.36 21.88 6.08 22.1 7.21 22.15C8.33 22.2 8.74 22.22 12 22.22C15.26 22.22 15.67 22.2 16.79 22.15C17.92 22.1 18.64 21.88 19.22 21.64C19.79 21.4 20.21 21.11 20.61 20.71C21.01 20.31 21.3 19.89 21.54 19.33C21.78 18.75 22 18.03 22.05 16.91C22.1 15.79 22.12 15.38 22.12 12.12C22.12 8.86 22.1 8.45 22.05 7.33C22 6.2 21.78 5.48 21.54 4.9C21.3 4.33 21.01 3.91 20.61 3.51C20.21 3.11 19.79 2.82 19.22 2.58C18.64 2.34 17.92 2.12 16.79 2.07C15.67 2.02 15.26 2 12 2Zm0 1.8C15.17 3.8 15.52 3.83 16.6 3.88C17.61 3.92 18.19 4.11 18.6 4.29C19.03 4.47 19.34 4.68 19.63 4.97C19.92 5.26 20.13 5.57 20.31 6C20.49 6.41 20.68 6.99 20.72 8C20.77 9.08 20.8 9.43 20.8 12.12C20.8 14.81 20.77 15.16 20.72 16.24C20.68 17.25 20.49 17.83 20.31 18.24C20.13 18.65 19.92 18.96 19.63 19.25C19.34 19.54 19.03 19.75 18.6 19.93C18.19 20.11 17.61 20.3 16.6 20.34C15.52 20.39 15.17 20.42 12 20.42C8.83 20.42 8.48 20.39 7.4 20.34C6.39 20.3 5.81 20.11 5.4 19.93C4.97 19.75 4.66 19.54 4.37 19.25C4.08 18.96 3.87 18.65 3.69 18.24C3.51 17.83 3.32 17.25 3.28 16.24C3.23 15.16 3.2 14.81 3.2 12.12C3.2 9.43 3.23 9.08 3.28 8C3.32 6.99 3.51 6.41 3.69 6C3.87 5.57 4.08 5.26 4.37 4.97C4.66 4.68 4.97 4.47 5.4 4.29C5.81 4.11 6.39 3.92 7.4 3.88C8.48 3.83 8.83 3.8 12 3.8Zm0 4.56C9.93 8.36 8.24 10.05 8.24 12.12C8.24 14.19 9.93 15.88 12 15.88C14.07 15.88 15.76 14.19 15.76 12.12C15.76 10.05 14.07 8.36 12 8.36Zm0 5.72C10.89 14.08 10.04 13.23 10.04 12.12C10.04 11.01 10.89 10.16 12 10.16C13.11 10.16 13.96 11.01 13.96 12.12C13.96 13.23 13.11 14.08 12 14.08Zm5.18-7.81C16.54 6.27 16 6.83 16 7.49C16 8.15 16.54 8.71 17.18 8.71C17.82 8.71 18.36 8.15 18.36 7.49C18.36 6.83 17.82 6.27 17.18 6.27Z"/></svg></a>
+                <a href="#" id="footerLinkedinLink" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="hover:text-sky-400"><svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0 1 15.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z"/></svg></a>
+            </div>
+            <p>&copy; <span id="currentYear"></span> MyPortfolio. All rights reserved.</p>
+            <p class="text-sm mt-2">Powered by Firebase & Tailwind CSS</p>
+        </div>
+    </footer>
+
+    <div id="articleModal" class="modal"><div class="modal-content"><span class="modal-close-btn" onclick="closeArticleModal()">&times;</span><h2 id="modalArticleTitle" class="text-3xl font-bold mb-4 text-blue-700"></h2><p class="text-sm text-slate-500 mb-1">By: <span id="modalArticleAuthor"></span></p><p class="text-sm text-slate-500 mb-4">Date: <span id="modalArticleDate"></span></p><div id="modalArticleContent" class="text-slate-700 leading-relaxed prose max-w-none"></div><div id="modalArticleTags" class="mt-6 text-sm"></div></div></div>
+    <div id="messageModal" class="modal"><div class="modal-content max-w-sm text-center"><p id="messageModalText" class="text-lg text-slate-700 mb-6"></p><button id="messageModalClose" class="btn-primary">OK</button></div></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { 
+            apiKey: "YOUR_API_KEY", // Fallback if __firebase_config is not available
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-portfolio-app-enhanced';
+
+        let app, auth, db, currentUserId = null, isAuthReady = false;
+
+        const ui = {
+            authStatus: document.getElementById('authStatus'),
+            userIdDisplay: document.getElementById('userIdDisplay'),
+            sections: document.querySelectorAll('.section'),
+            navLinks: document.querySelectorAll('.nav-link'),
+            portfolioGrid: document.getElementById('portfolioGrid'),
+            articlesList: document.getElementById('articlesList'),
+            testimonialsGrid: document.getElementById('testimonialsGrid'),
+            noPortfolioItemsMsg: document.getElementById('noPortfolioItems'),
+            noArticlesMsg: document.getElementById('noArticles'),
+            noTestimonialsMsg: document.getElementById('noTestimonials'),
+            addPortfolioForm: document.getElementById('addPortfolioForm'),
+            addArticleForm: document.getElementById('addArticleForm'),
+            addTestimonialForm: document.getElementById('addTestimonialForm'),
+            updatePersonalInfoForm: document.getElementById('updatePersonalInfoForm'),
+            articleModal: document.getElementById('articleModal'),
+            modalArticleTitle: document.getElementById('modalArticleTitle'),
+            modalArticleAuthor: document.getElementById('modalArticleAuthor'),
+            modalArticleDate: document.getElementById('modalArticleDate'),
+            modalArticleContent: document.getElementById('modalArticleContent'),
+            modalArticleTags: document.getElementById('modalArticleTags'),
+            messageModal: document.getElementById('messageModal'),
+            messageModalText: document.getElementById('messageModalText'),
+            messageModalClose: document.getElementById('messageModalClose'),
+            userLogo: document.getElementById('userLogo'),
+            userPhoto: document.getElementById('userPhoto'),
+            homeIntroText: document.getElementById('homeIntroText'),
+            emailLink: document.getElementById('emailLink'),
+            whatsappLink: document.getElementById('whatsappLink'),
+            facebookLink: document.getElementById('facebookLink'),
+            instagramLink: document.getElementById('instagramLink'),
+            linkedinLink: document.getElementById('linkedinLink'),
+            userAddress: document.getElementById('userAddress'),
+            footerEmailLink: document.getElementById('footerEmailLink'),
+            footerWhatsappLink: document.getElementById('footerWhatsappLink'),
+            footerFacebookLink: document.getElementById('footerFacebookLink'),
+            footerInstagramLink: document.getElementById('footerInstagramLink'),
+            footerLinkedinLink: document.getElementById('footerLinkedinLink'),
+        };
+
+        function showMessageModal(message) {
+            ui.messageModalText.textContent = message;
+            ui.messageModal.style.display = 'flex';
+        }
+        ui.messageModalClose.addEventListener('click', () => ui.messageModal.style.display = 'none');
+
+        // Global function for inline onclick
+        window.navigateToSection = function(hash) {
+            if (!hash || !hash.startsWith('#')) hash = "#home";
+            const targetId = hash.substring(1);
+            ui.sections.forEach(s => s.classList.toggle('active', s.id === targetId));
+            ui.navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('data-target') === hash));
+            window.scrollTo(0, 0);
+        }
+
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                setLogLevel('debug');
+                await setPersistence(auth, browserLocalPersistence);
+                ui.authStatus.textContent = "Authenticating...";
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        ui.authStatus.textContent = "Authenticated";
+                        ui.userIdDisplay.textContent = currentUserId;
+                        isAuthReady = true;
+                        console.log("User authenticated:", currentUserId);
+                        loadAllData(); 
+                    } else {
+                        ui.authStatus.textContent = "Signing in...";
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (error) {
+                            console.error("Error during sign-in:", error);
+                            ui.authStatus.textContent = "Authentication Failed";
+                            isAuthReady = false;
+                            showMessageModal(`Sign-in Error: ${error.message}.`);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                ui.authStatus.textContent = "Firebase Init Failed";
+                showMessageModal(`Firebase Init Error: ${error.message}.`);
+                isAuthReady = false;
+            }
+        }
+        
+        function loadAllData() {
+            if (!isAuthReady || !currentUserId) return;
+            loadPersonalInfo();
+            loadPortfolioItems();
+            loadArticles();
+            loadTestimonials();
+        }
+
+        const personalInfoDocPath = () => `artifacts/${appId}/users/${currentUserId}/personalInfo/details`;
+
+        async function loadPersonalInfo() {
+            if (!isAuthReady || !currentUserId) return;
+            const docRef = doc(db, personalInfoDocPath());
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    ui.userLogo.src = data.logoUrl || 'https://placehold.co/100x40/3b82f6/ffffff?text=Logo';
+                    ui.userPhoto.src = data.photoUrl || 'https://placehold.co/150x150/e0e0e0/757575?text=Your+Photo';
+                    ui.homeIntroText.textContent = data.homeIntro || 'Discover my projects, read my articles...';
+                    ui.emailLink.href = `mailto:${data.email || 'youremail@example.com'}`;
+                    ui.whatsappLink.href = data.whatsapp ? `https://wa.me/${data.whatsapp.replace(/\D/g, '')}` : '#';
+                    ui.facebookLink.href = data.facebookUrl || '#';
+                    ui.instagramLink.href = data.instagramUrl || '#';
+                    ui.linkedinLink.href = data.linkedinUrl || '#';
+                    ui.userAddress.textContent = data.address || 'Your City, Country';
+
+                    ui.footerEmailLink.href = ui.emailLink.href;
+                    ui.footerWhatsappLink.href = ui.whatsappLink.href;
+                    ui.footerFacebookLink.href = ui.facebookLink.href;
+                    ui.footerInstagramLink.href = ui.instagramLink.href;
+                    ui.footerLinkedinLink.href = ui.linkedinLink.href;
+
+                    document.getElementById('personalLogoUrl').value = data.logoUrl || '';
+                    document.getElementById('personalPhotoUrl').value = data.photoUrl || '';
+                    document.getElementById('personalHomeIntro').value = data.homeIntro || '';
+                    document.getElementById('personalEmail').value = data.email || '';
+                    document.getElementById('personalWhatsapp').value = data.whatsapp || '';
+                    document.getElementById('personalFacebook').value = data.facebookUrl || '';
+                    document.getElementById('personalInstagram').value = data.instagramUrl || '';
+                    document.getElementById('personalLinkedin').value = data.linkedinUrl || '';
+                    document.getElementById('personalAddress').value = data.address || '';
+                } else {
+                     console.log("No personal info document found, using defaults.");
+                }
+            } catch (error) {
+                console.error("Error loading personal info:", error);
+                showMessageModal(`Error loading personal info: ${error.message}`);
+            }
+        }
+
+        ui.updatePersonalInfoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isAuthReady || !currentUserId) {
+                showMessageModal("Cannot save: User not authenticated.");
+                return;
+            }
+            const data = {
+                logoUrl: document.getElementById('personalLogoUrl').value,
+                photoUrl: document.getElementById('personalPhotoUrl').value,
+                homeIntro: document.getElementById('personalHomeIntro').value,
+                email: document.getElementById('personalEmail').value,
+                whatsapp: document.getElementById('personalWhatsapp').value,
+                facebookUrl: document.getElementById('personalFacebook').value,
+                instagramUrl: document.getElementById('personalInstagram').value,
+                linkedinUrl: document.getElementById('personalLinkedin').value,
+                address: document.getElementById('personalAddress').value,
+                updatedAt: serverTimestamp()
+            };
+            try {
+                await setDoc(doc(db, personalInfoDocPath()), data, { merge: true });
+                showMessageModal("Personal information updated successfully!");
+                loadPersonalInfo(); 
+            } catch (error) {
+                console.error("Error updating personal info:", error);
+                showMessageModal(`Error updating personal info: ${error.message}`);
+            }
+        });
+
+        function loadPortfolioItems() { 
+            if (!isAuthReady || !currentUserId) {
+                ui.portfolioGrid.innerHTML = '<p class="text-slate-500 col-span-full text-center">Authenticating... Please wait.</p>';
+                if(ui.noPortfolioItemsMsg) ui.noPortfolioItemsMsg.style.display = 'none';
+                return;
+            }
+            const portfolioPath = `artifacts/${appId}/users/${currentUserId}/portfolioItems`;
+            const qItems = query(collection(db, portfolioPath)); 
+            onSnapshot(qItems, (snapshot) => {
+                ui.portfolioGrid.innerHTML = ''; 
+                if (snapshot.empty) {
+                    if(ui.noPortfolioItemsMsg) ui.noPortfolioItemsMsg.style.display = 'block';
+                    return;
+                }
+                if(ui.noPortfolioItemsMsg) ui.noPortfolioItemsMsg.style.display = 'none';
+                snapshot.forEach((itemDoc) => {
+                    const item = itemDoc.data();
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'card flex flex-col';
+                    itemEl.innerHTML = `
+                        <img src="${item.imageUrl || 'https://placehold.co/600x400/e0e0e0/757575?text=Project+Image'}" alt="${item.title}" class="w-full h-48 object-cover rounded-t-lg mb-4" onerror="this.src='https://placehold.co/600x400/e0e0e0/757575?text=Image+Error'">
+                        <h3 class="text-xl font-semibold mb-2 text-blue-600">${item.title}</h3>
+                        <p class="text-slate-600 text-sm mb-3 flex-grow">${item.description}</p>
+                        ${item.category ? `<p class="text-xs text-slate-500 mb-3"><strong>Category:</strong> ${item.category}</p>` : ''}
+                        ${item.projectUrl ? `<a href="${item.projectUrl}" target="_blank" rel="noopener noreferrer" class="mt-auto inline-block text-blue-500 hover:text-blue-700 font-medium transition-colors duration-200 self-start">View Project &rarr;</a>` : ''}
+                    `;
+                    ui.portfolioGrid.appendChild(itemEl);
+                });
+            }, (error) => {
+                console.error("Error loading portfolio items:", error);
+                showMessageModal(`Error loading portfolio: ${error.message}`);
+            });
+        }
+        ui.addPortfolioForm.addEventListener('submit', async (e) => { 
+            e.preventDefault();
+            if (!isAuthReady || !currentUserId) { showMessageModal("Not authenticated."); return; }
+            const data = {
+                title: document.getElementById('portfolioTitle').value,
+                description: document.getElementById('portfolioDescription').value,
+                imageUrl: document.getElementById('portfolioImageUrl').value,
+                projectUrl: document.getElementById('portfolioProjectUrl').value,
+                category: document.getElementById('portfolioCategory').value,
+                createdAt: serverTimestamp()
+            };
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/portfolioItems`), data);
+                showMessageModal("Portfolio item added!");
+                ui.addPortfolioForm.reset();
+            } catch (error) { showMessageModal(`Error: ${error.message}`); }
+        });
+
+        function loadArticles() { 
+            if (!isAuthReady || !currentUserId) {
+                ui.articlesList.innerHTML = '<p class="text-slate-500 text-center">Authenticating... Please wait.</p>';
+                if(ui.noArticlesMsg) ui.noArticlesMsg.style.display = 'none';
+                return;
+            }
+            const articlesPath = `artifacts/${appId}/users/${currentUserId}/articles`;
+            const qArticles = query(collection(db, articlesPath));
+            onSnapshot(qArticles, (snapshot) => {
+                ui.articlesList.innerHTML = '';
+                if (snapshot.empty) {
+                    if(ui.noArticlesMsg) ui.noArticlesMsg.style.display = 'block';
+                    return;
+                }
+                if(ui.noArticlesMsg) ui.noArticlesMsg.style.display = 'none';
+                snapshot.forEach((articleDoc) => {
+                    const article = articleDoc.data();
+                    const articleId = articleDoc.id;
+                    const articleEl = document.createElement('div');
+                    articleEl.className = 'card';
+                    const snippet = article.content.length > 150 ? article.content.substring(0, 150) + "..." : article.content;
+                    articleEl.innerHTML = `
+                        <h3 class="text-2xl font-semibold mb-2 text-blue-600">${article.title}</h3>
+                        <p class="text-sm text-slate-500 mb-2">By ${article.author || 'Anonymous'} - ${article.createdAt ? new Date(article.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
+                        <p class="text-slate-600 mb-4">${snippet}</p>
+                        ${article.tags ? `<p class="text-xs text-slate-500 mb-3"><strong>Tags:</strong> ${article.tags}</p>` : ''}
+                        <button data-id="${articleId}" class="read-more-btn text-blue-500 hover:text-blue-700 font-medium">Read More &rarr;</button>
+                    `;
+                    ui.articlesList.appendChild(articleEl);
+                });
+                document.querySelectorAll('.read-more-btn').forEach(btn => btn.addEventListener('click', (e) => openArticleModal(e.target.dataset.id)));
+            }, (error) => {
+                console.error("Error loading articles:", error);
+                showMessageModal(`Error loading articles: ${error.message}`);
+            });
+        }
+        async function openArticleModal(articleId) { 
+            if (!isAuthReady || !currentUserId) { showMessageModal("Not authenticated."); return; }
+            try {
+                const docRef = doc(db, `artifacts/${appId}/users/${currentUserId}/articles`, articleId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const article = docSnap.data();
+                    ui.modalArticleTitle.textContent = article.title;
+                    ui.modalArticleAuthor.textContent = article.author || 'Anonymous';
+                    ui.modalArticleDate.textContent = article.createdAt ? new Date(article.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+                    ui.modalArticleContent.innerHTML = article.content.replace(/\n/g, '<br>');
+                    ui.modalArticleTags.innerHTML = article.tags ? `<strong>Tags:</strong> ${article.tags.split(',').map(t => `<span class="bg-slate-200 text-slate-700 px-2 py-1 rounded-full text-xs mr-1">${t.trim()}</span>`).join('')}` : '';
+                    ui.articleModal.style.display = 'flex';
+                } else { showMessageModal("Article not found."); }
+            } catch (error) { showMessageModal(`Error fetching article: ${error.message}`); }
+        }
+        window.closeArticleModal = () => ui.articleModal.style.display = 'none';
+        ui.addArticleForm.addEventListener('submit', async (e) => { 
+            e.preventDefault();
+            if (!isAuthReady || !currentUserId) { showMessageModal("Not authenticated."); return; }
+            let authorVal = document.getElementById('articleAuthor').value.trim();
+            if (!authorVal) authorVal = `User ${currentUserId.substring(0,6)}...`;
+            const data = {
+                title: document.getElementById('articleTitle').value,
+                content: document.getElementById('articleContent').value,
+                author: authorVal,
+                tags: document.getElementById('articleTags').value,
+                createdAt: serverTimestamp()
+            };
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/articles`), data);
+                showMessageModal("Article added!");
+                ui.addArticleForm.reset();
+            } catch (error) { showMessageModal(`Error: ${error.message}`); }
+        });
+        
+        function loadTestimonials() {
+            if (!isAuthReady || !currentUserId) {
+                ui.testimonialsGrid.innerHTML = '<p class="text-slate-500 col-span-full text-center">Authenticating... Please wait.</p>';
+                 if(ui.noTestimonialsMsg) ui.noTestimonialsMsg.style.display = 'none';
+                return;
+            }
+            const testimonialsPath = `artifacts/${appId}/users/${currentUserId}/testimonials`;
+            const qTestimonials = query(collection(db, testimonialsPath));
+            onSnapshot(qTestimonials, (snapshot) => {
+                ui.testimonialsGrid.innerHTML = '';
+                if (snapshot.empty) {
+                    if(ui.noTestimonialsMsg) ui.noTestimonialsMsg.style.display = 'block';
+                    return;
+                }
+                if(ui.noTestimonialsMsg) ui.noTestimonialsMsg.style.display = 'none';
+                snapshot.forEach((testimonialDoc) => {
+                    const testimonial = testimonialDoc.data();
+                    const testimonialEl = document.createElement('div');
+                    testimonialEl.className = 'card text-center md:text-left'; 
+                    testimonialEl.innerHTML = `
+                        <div class="flex flex-col md:flex-row items-center">
+                            ${testimonial.imageUrl ? `<img src="${testimonial.imageUrl}" alt="${testimonial.name}" class="w-24 h-24 rounded-full object-cover mb-4 md:mb-0 md:mr-6 border-2 border-blue-200" onerror="this.style.display='none'">` : `<div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-blue-500 text-3xl font-bold mb-4 md:mb-0 md:mr-6">${testimonial.name ? testimonial.name.charAt(0) : '?'}</div>`}
+                            <div class="flex-1">
+                                <p class="text-slate-600 italic mb-3">"${testimonial.quote}"</p>
+                                <p class="font-semibold text-blue-600">${testimonial.name}</p>
+                                ${testimonial.titleCompany ? `<p class="text-sm text-slate-500">${testimonial.titleCompany}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    ui.testimonialsGrid.appendChild(testimonialEl);
+                });
+            }, (error) => {
+                console.error("Error loading testimonials:", error);
+                showMessageModal(`Error loading testimonials: ${error.message}`);
+            });
+        }
+        ui.addTestimonialForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isAuthReady || !currentUserId) { showMessageModal("Not authenticated."); return; }
+            const data = {
+                name: document.getElementById('testimonialName').value,
+                quote: document.getElementById('testimonialQuote').value,
+                titleCompany: document.getElementById('testimonialTitleCompany').value,
+                imageUrl: document.getElementById('testimonialImageUrl').value,
+                createdAt: serverTimestamp()
+            };
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/testimonials`), data);
+                showMessageModal("Testimonial added!");
+                ui.addTestimonialForm.reset();
+            } catch (error) { showMessageModal(`Error: ${error.message}`); }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebase();
+            let initialHash = "#home";
+            try { if (window.location.hash && window.location.hash !== "#") initialHash = window.location.hash; }
+            catch (e) { console.warn("Cannot read initial hash", e); }
+            navigateToSection(initialHash); // Call the global version
+
+            ui.navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateToSection(link.getAttribute('data-target')); // Call the global version
+                });
+            });
+            window.addEventListener('hashchange', () => {
+                try { navigateToSection(window.location.hash || "#home"); } // Call the global version
+                catch(e) { console.warn("Error on hashchange", e); }
+            });
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            window.onclick = (event) => {
+                if (event.target == ui.articleModal) ui.articleModal.style.display = "none";
+                if (event.target == ui.messageModal) ui.messageModal.style.display = "none";
+            };
+        });
+    </script>
+</body>
+</html>
